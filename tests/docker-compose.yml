@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+  scylla-cluster1:
+    image: ${SCYLLA_IMAGE}
+    command:
+      - "--cluster-name"
+      - "cluster1"
+      - "--seeds"
+      - "scylla-cluster1"
+      - "--smp"
+      - "2"
+      - "--memory"
+      - "512M"
+      - "--overprovisioned"
+      - "1"
+    ports:
+      - "9042:9042"
+    healthcheck:
+      test: [ "CMD", "cqlsh", "-e", "select * from system.local WHERE key='local'" ]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+
+  scylla-cluster2:
+    image: ${SCYLLA_IMAGE}
+    command:
+      - "--cluster-name"
+      - "cluster2"
+      - "--seeds"
+      - "scylla-cluster2"
+      - "--smp"
+      - "2"
+      - "--memory"
+      - "512M"
+      - "--overprovisioned"
+      - "1"
+    ports:
+      - "9142:9042"
+    healthcheck:
+      test: [ "CMD", "cqlsh", "-e", "select * from system.local WHERE key='local'" ]
+      interval: 5s
+      timeout: 5s
+      retries: 60
