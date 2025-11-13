@@ -44,8 +44,9 @@ services:
       retries: 60
 
   gocql-observer:
-    build:
-      context: ..
+    image: ${TARGET_IMAGE}
+#    build:
+#      context: ..
     depends_on:
       scylla-cluster1:
         condition: service_healthy

@@ -66,6 +66,18 @@ func (l *clusterLogger) Logf(format string, args ...interface{}) {
 	fmt.Printf("[%s] %s\n", l.name, line)
 }
 
+func (l *clusterLogger) Print(v ...interface{}) {
+	l.Logf("%s", fmt.Sprint(v...))
+}
+
+func (l *clusterLogger) Printf(format string, v ...interface{}) {
+	l.Logf(format, v...)
+}
+
+func (l *clusterLogger) Println(v ...interface{}) {
+	l.Logf("%s", fmt.Sprint(v...))
+}
+
 func main() {
 	configs, err := loadClusterConfigs()
 	if err != nil {
@@ -191,7 +203,7 @@ func cleanupRuntimes(runtimes []*clusterRuntime) {
 	}
 }
 
-func newSession(cfg clusterConfig) (*gocql.Session, error) {
+func newSession(cfg clusterConfig, logger *clusterLogger) (*gocql.Session, error) {
 	cluster := gocql.NewCluster(cfg.ContactPoints...)
 	cluster.Timeout = 15 * time.Millisecond
 	cluster.RetryPolicy = &gocql.SimpleRetryPolicy{
@@ -212,6 +224,7 @@ func newSession(cfg clusterConfig) (*gocql.Session, error) {
 	cluster.ConnectTimeout = time.Second * 11
 	cluster.ProtoVersion = 4
 	cluster.Consistency = gocql.LocalOne
+	cluster.Logger = logger
 
 	if cfg.Username != "" || cfg.Password != "" {
 		cluster.Authenticator = gocql.PasswordAuthenticator{
@@ -232,7 +245,7 @@ func connectWithRetry(ctx context.Context, cfg clusterConfig, logger *clusterLog
 	attempt := 1
 
 	for {
-		session, err := newSession(cfg)
+		session, err := newSession(cfg, logger)
 		if err == nil {
 			if attempt > 1 {
 				logger.Logf("connection established after %d attempts", attempt)

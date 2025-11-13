@@ -1,22 +1,22 @@
 SHELL=bash
 .ONE_SHELL:
 BIN ?= build/gocql-observer
-IMAGE ?= gocql-observer:latest
+TARGET_IMAGE ?= gocql-observer:latest
 INTEGRATION_LOG_DIR ?= ./logs/integration
 SCYLLA_IMAGE ?= scylladb/scylla
 
 .PHONY: all build image integration-test clean
 
-all: build image
+all: build build-image
 
 build:
-	go build -o $(BIN) .
+	go build -o $(BIN) -tags gocql_debug .
 
 build-image:
-	docker build -t $(IMAGE) .
+	docker build -t $(TARGET_IMAGE) .
 
 test-docker: build-image .fix-aio-max-nr
-	SCYLLA_IMAGE=$(SCYLLA_IMAGE) docker-compose -f tests/docker-compose.yml up -d --wait
+	TARGET_IMAGE=$(TARGET_IMAGE) SCYLLA_IMAGE=$(SCYLLA_IMAGE) docker-compose -f tests/docker-compose.yml up -d --wait
 
 test-build: build
 	echo export CLUSTER1_CONTACT_POINTS=`docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' tests-scylla-cluster1-1`
