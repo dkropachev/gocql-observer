@@ -116,9 +116,8 @@ func loadClusterConfigs() ([]clusterConfig, error) {
 
 	cfg2, err := buildClusterConfig(2, logDir)
 	if err != nil {
-		return nil, fmt.Errorf("cluster 2: %w", err)
+		return []clusterConfig{cfg1}, nil
 	}
-
 	return []clusterConfig{cfg1, cfg2}, nil
 }
 
