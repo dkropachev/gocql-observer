@@ -10,4 +10,4 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 )
 
-replace github.com/gocql/gocql => github.com/scylladb/gocql v1.15.3
+replace github.com/gocql/gocql => github.com/dkropachev/gocql v0.0.0-20251112234914-116329ce73d1

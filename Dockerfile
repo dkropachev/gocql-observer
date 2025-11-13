@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.22 AS builder
+FROM golang:1.25.3 AS builder
 WORKDIR /src
 
 COPY go.mod go.sum ./

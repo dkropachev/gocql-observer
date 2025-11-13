@@ -38,6 +38,10 @@ spec:
             - configMapRef:
                 name: gocql-observer-config
           env:
+            - name: CLUSTER1_CONTACT_POINTS
+              value: ip1,ip2,ip3
+            - name: CLUSTER2_CONTACT_POINTS
+              value: ip4,ip5,ip6
             - name: LOG_DIRECTORY
               value: /var/log/gocql
           volumeMounts:

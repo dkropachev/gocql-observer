@@ -42,3 +42,26 @@ services:
       interval: 5s
       timeout: 5s
       retries: 60
+
+  gocql-observer:
+    build:
+      context: ..
+    depends_on:
+      scylla-cluster1:
+        condition: service_healthy
+      scylla-cluster2:
+        condition: service_healthy
+    environment:
+      CLUSTER1_CONTACT_POINTS: scylla-cluster1
+      CLUSTER2_CONTACT_POINTS: scylla-cluster2
+      LOG_DIRECTORY: /observer/logs
+      RUN_DURATION: 1m
+    volumes:
+      - ../logs:/observer/logs
+    healthcheck:
+      test:
+        - "CMD-SHELL"
+        - "test -f /observer/logs/cluster1.log && test -f /observer/logs/cluster2.log"
+      interval: 10s
+      timeout: 5s
+      retries: 6

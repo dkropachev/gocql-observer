@@ -38,7 +38,7 @@ func newClusterLogger(name, path string) (*clusterLogger, error) {
 		return nil, fmt.Errorf("creating log directory for %s: %w", name, err)
 	}
 
-	f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
 		return nil, fmt.Errorf("opening log file for %s: %w", name, err)
 	}
@@ -254,26 +254,32 @@ func connectWithRetry(ctx context.Context, cfg clusterConfig, logger *clusterLog
 
 func pollCluster(ctx context.Context, session *gocql.Session, logger *clusterLogger, interval time.Duration) {
 	ticker := time.NewTicker(interval)
-	defer ticker.Stop()
+	defer func() {
+		ticker.Stop()
+		logger.Logf("shutting down, closing worker thread")
+	}()
 
 	logger.Logf("starting poll loop with interval %s", interval)
 
 	for {
 		select {
 		case <-ctx.Done():
-			logger.Logf("context cancelled, stopping poll loop")
 			return
 		case <-ticker.C:
 			start := time.Now()
 			var clusterName, releaseVersion string
 			query := session.Query("SELECT cluster_name, release_version FROM system.local").WithContext(ctx).Consistency(gocql.One)
 			if err := query.Scan(&clusterName, &releaseVersion); err != nil {
-				logger.Logf("heartbeat failed: %v", err)
+				logger.Logf("heartbeat query failed: %v", err)
 				continue
 			}
 
 			latency := time.Since(start)
 			logger.Logf("cluster=%s release=%s latency=%s", clusterName, releaseVersion, latency)
+			session.IterateHostPools(func(info gocql.HostPoolInfo) bool {
+				logger.Logf("node=%s connect-address=%s shards=%d conns=%d excess-conns=%d", info.Host().HostID(), info.Host().ConnectAddress(), info.GetShardCount(), info.GetConnectionCount(), info.GetExcessConnectionCount())
+				return true
+			})
 		}
 	}
 }
