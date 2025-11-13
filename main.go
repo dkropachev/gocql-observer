@@ -225,6 +225,7 @@ func newSession(cfg clusterConfig, logger *clusterLogger) (*gocql.Session, error
 	cluster.ProtoVersion = 4
 	cluster.Consistency = gocql.LocalOne
 	cluster.Logger = logger
+	cluster.MaxExcessShardConnectionsRate = 10
 
 	if cfg.Username != "" || cfg.Password != "" {
 		cluster.Authenticator = gocql.PasswordAuthenticator{
